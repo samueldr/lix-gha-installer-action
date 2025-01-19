@@ -14,7 +14,7 @@ set -o pipefail # the return value of a pipeline is the status of
 
 ################################################################################
 # Constants
-REPO_URL="https://github.com/samueldr/lix-gha"
+REPO_URL="https://github.com/samueldr/lix-gha-installer-action"
 ACTION_NAME="Lix GHA Installer Action"
 ################################################################################
 
@@ -128,7 +128,10 @@ set -x
 
 curl -sSf -L https://install.lix.systems/lix | bash -s -- install --no-confirm
 
-< /etc/nix/nix.conf sed -e 's/nixpkgs=flake:nixpkgs/nixpkgs=channel:nixos-unstable/' > tmp.conf
+(
+	< /etc/nix/nix.conf sed -e 's/nixpkgs=flake:nixpkgs/nixpkgs=channel:nixos-unstable/'
+	printf "trusted-users = root %s\n" "${USER:-}"
+) > tmp.conf
 sudo mv -v tmp.conf /etc/nix/nix.conf
 )
 
