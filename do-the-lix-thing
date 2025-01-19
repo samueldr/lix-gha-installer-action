@@ -14,7 +14,7 @@ set -o pipefail # the return value of a pipeline is the status of
 
 ################################################################################
 # Constants
-REPO_URL="https://github.com/samueldr/lix-gha"
+REPO_URL="https://github.com/samueldr/lix-gha-installer-action"
 ACTION_NAME="Lix GHA Installer Action"
 ################################################################################
 
