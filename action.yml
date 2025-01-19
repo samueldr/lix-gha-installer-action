@@ -1,0 +1,8 @@
+name: Lix GHA Installer Action
+description: Simple and opinionated action to install Lix. Strictly follows the default semantics of a Lix install.
+runs:
+  using: "composite"
+  steps:
+    - name: Install Lix
+      run: bash ${{ github.action_path }}/do-the-lix-thing
+      shell: bash

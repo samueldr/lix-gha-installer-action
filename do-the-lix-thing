@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Initial setup
+set -e # Exit immediately if a command exits with a non-zero status.
+set -u # Treat unset variables as an error when substituting.
+set -E # If set, the ERR trap is inherited by shell functions.
+set -o pipefail # the return value of a pipeline is the status of
+                # the last command to exit with a non-zero status,
+                # or zero if no command exited with a non-zero status
+################################################################################
+
+
+
+################################################################################
+# Constants
+REPO_URL="https://github.com/samueldr/lix-gha"
+ACTION_NAME="Lix GHA Installer Action"
+################################################################################
+
+
+################################################################################
+# Tracing
+TRACE_LOG="trace.log"
+ERR_LOG="err.log"
+exec 4> $TRACE_LOG
+exec 4> >( tee "$TRACE_LOG" >&4 )
+exec 2> >( tee "$ERR_LOG" >&2 )
+BASH_XTRACEFD=4
+# For `set -x`, for tracing commands execution
+PS4=" $ "
+################################################################################
+
+_gha_err() {
+	local title
+	title=$1; shift
+	printf '\n::error title="%s"::%s\n' "$title" "${*//$'\n'/%0A}"
+	printf '\nError:\n%s\n%s\n' "$title" "$*"
+}
+
+_handle_exit() {
+	local status=$?
+	if (( status )); then
+		_gha_err "Unexpected failure..." "$(
+			# NOTE: the error message is padded *a lot* to make sure it causes a "show more" expander to be present.
+			echo "The $ACTION_NAME unexpectedly encountered a problem..."
+			echo ""
+			echo "Failure while executing the last command:"
+			echo "  Exit status:"
+			echo "    $status"
+			echo "  Last commands from the trace log:"
+			tail -n10 "$TRACE_LOG" | sed -e 's/^\s*\$\s*/    $ /'
+			echo "  Last lines from the error log:"
+			tail -n10 "$ERR_LOG" | sed -e 's/^/    stderr: /'
+			_environment_details | sed -e 's/^/  /'
+			echo ""
+			echo "Please report this error to $REPO_URL/issues/new"
+			echo ""
+		)"
+		exit $status
+	else
+		printf "Installation ran successfully to  the end!\n"
+	fi
+}
+
+_exit_failure() {
+	trap true EXIT
+	exit 1
+}
+
+_command_exists() {
+	type -P "$1" > /dev/null
+}
+
+_environment_details() {
+	printf "Environment details:\n"
+	printf "  - Date:     %s\n" "$(date)"
+	printf "  - System:   %s\n" "$(_get_system)"
+	printf "Operating system details:\n"
+	(
+	if _command_exists sw_vers; then
+		sw_vers
+	elif test -e /etc/lsb-release; then
+		< /etc/lsb-release sed -e 's/=/: /'
+	fi
+	) | sed -e 's/^/  /'
+}
+
+_get_system() {
+	local _arch
+	local _os
+	local _pair
+	_arch=$(uname -m)
+	_os=$(uname -s)
+	_pair="$_os:$_arch"
+
+	case "$_pair" in
+		Linux:x86_64|Linux:aarch64)
+			_os=linux
+		;;
+		Darwin:x86_64)
+			_os=darwin
+		;;
+		Darwin:arm64)
+			_os=darwin
+			_arch=aarch64
+		;;
+		*)
+			_gha_err "Unexpected OS or Architecture ($_pair)" "The OS '$_os' with architecture '$_arch' is not supported by the $ACTION_NAME at this time."
+			_exit_failure
+		;;
+	esac
+	printf "%s-%s" "$_arch" "$_os"
+}
+
+printf '»» lix-gha/do-the-lix-thing\n'
+_get_system
+printf '\n'
+_environment_details
+printf '\n'
+
+trap _handle_exit EXIT
+
+# Start tracing commands
+# Doing it in a subshell means _handle_exit will not trace.
+(
+set -x
+
+curl -sSf -L https://install.lix.systems/lix | bash -s -- install --no-confirm
+
+< /etc/nix/nix.conf sed -e 's/nixpkgs=flake:nixpkgs/nixpkgs=channel:nixos-unstable/' > tmp.conf
+sudo mv -v tmp.conf /etc/nix/nix.conf
+)
+
+
+printf '\nChecking install...\n'
+
+# On macOS we're getting this:
+# *sigh*
+# /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh: line 55: ZSH_VERSION: unbound variable
+set +u
+
+# Source the script once in subshell for trace logging...
+# shellcheck disable=SC1091
+(set -x; . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh)
+
+# Then source for actual usage.
+# shellcheck disable=SC1091
+. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+
+set -u
+
+# Then do some additional checks
+printf '\n  builtins.nixVersion: ';
+(set -x; nix-instantiate --eval --json --strict --expr "(builtins.nixVersion)")
+printf '\n'
+
+rm -v "$TRACE_LOG" "$ERR_LOG" || true
