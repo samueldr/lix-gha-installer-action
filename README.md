@@ -9,7 +9,10 @@ Lix GHA Installer Action
 
 It mostly just runs [the Lix Installer](https://lix.systems/install/#new-installs)<sup>1</sup>.
 
-We use the `channel:` ref to Nixpkgs instead of the `flake:` ref, as the `flake:` ref may have issues within the GHA ecosystem, regarding rate-limiting.
+Some differences:
+
+ - We use the `channel:` ref to Nixpkgs instead of the `flake:` ref, as the `flake:` ref may have issues within the GHA ecosystem, regarding rate-limiting.
+ - We configure the current user as a trusted user.
 
 No options.
 
