@@ -1,5 +1,5 @@
 name: Lix GHA Installer Action
-description: Simple and opinionated action to install Lix. Strictly follows the default semantics of a Lix install.
+description: Simple action to install Lix (the independent variant of the Nix package manager). 
 runs:
   using: "composite"
   steps:
