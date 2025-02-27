@@ -130,6 +130,13 @@ curl -sSf -L https://install.lix.systems/lix | bash -s -- install --no-confirm
 
 (
 	< /etc/nix/nix.conf sed -e 's/nixpkgs=flake:nixpkgs/nixpkgs=channel:nixos-unstable/'
+	if [ -z "${INPUT_GITHUB_ACCESS_TOKEN:-}" ]; then
+		echo "Configuring default github access token" >&2
+		printf "extra-access-tokens = github.com=%s\n" "${GITHUB_TOKEN}"
+	else
+		echo "Configuring custom github access token" >&2
+		printf "extra-access-tokens = github.com=%s\n" "${INPUT_GITHUB_ACCESS_TOKEN}"
+	fi
 	printf "trusted-users = root %s\n" "${USER:-}"
 ) > tmp.conf
 sudo mv -v tmp.conf /etc/nix/nix.conf
