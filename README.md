@@ -21,12 +21,13 @@ Configuring the action
 
 <!-- ACTION.YML INPUTS START -->
 
-#### `github_access_token`
+### `github_access_token`
 
 A github token that is added as an entry on extra-access-tokens in nix.conf.
 
 By default, the `github.token` is configured. See https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
 for a description of the default token's permissions.
+
 
 <!-- ACTION.YML INPUTS END -->
 
