@@ -1,0 +1,26 @@
+name: "docs"
+on:
+  pull_request:
+  push:
+    branches:
+      - "latest"
+
+jobs:
+  check-docs:
+    name: Verify docs are up-to-date
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: (Setup Lix with this action...)
+        uses: ./
+
+      - name: Check docs are up-to-date
+        shell: bash
+        run: |
+          (
+          PS4=" $ "
+          set -eux -o pipefail
+          export LC_CTYPE=en_US.UTF-8
+          support/update-readme.rb --check
+          )
