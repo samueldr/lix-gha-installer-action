@@ -23,6 +23,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./
+        with:
+          extra_nix_config: |
+            extra-access-tokens = example.com=lix-gha-installer-extra-config-works
       - name: Printing some useful info
         shell: bash
         run: |
@@ -36,5 +39,6 @@ jobs:
         run: |
           (
           set -eux -o pipefail
+          nix --extra-experimental-features nix-command config show | grep lix-gha-installer-extra-config-works
           echo "pp RUBY_DESCRIPTION" | nix-shell -p ruby --run ruby
           )
