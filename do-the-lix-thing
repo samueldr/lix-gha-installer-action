@@ -138,6 +138,7 @@ curl -sSf -L https://install.lix.systems/lix | bash -s -- install --no-confirm
 		printf "extra-access-tokens = github.com=%s\n" "${INPUT_GITHUB_ACCESS_TOKEN}"
 	fi
 	printf "trusted-users = root %s\n" "${USER:-}"
+	echo "${INPUT_EXTRA_CONFIG:-}"
 ) > tmp.conf
 sudo mv -v tmp.conf /etc/nix/nix.conf
 )
