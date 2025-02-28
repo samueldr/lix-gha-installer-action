@@ -29,6 +29,12 @@ By default, the `github.token` is configured. See https://docs.github.com/en/act
 for a description of the default token's permissions.
 
 
+### `extra_nix_config`
+
+Additional configuration text to append to nix.conf. See https://docs.lix.systems/manual/lix/2.90/command-ref/conf-file.html
+for a description of the config file format.
+
+
 <!-- ACTION.YML INPUTS END -->
 
 ---
