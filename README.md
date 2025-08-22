@@ -35,6 +35,14 @@ Additional configuration text to append to nix.conf. See https://docs.lix.system
 for a description of the config file format.
 
 
+### `lix_version`
+
+The exact lix version to use (e.g. 2.93.2) or a URL to the Lix release (e.g.
+https://releases.lix.systems/lix/lix-2.92.0/lix-2.92.0-x86_64-linux.tar.xz).
+
+You should almost always use a version instead of the full URL.
+
+
 <!-- ACTION.YML INPUTS END -->
 
 ---

@@ -114,11 +114,35 @@ _get_system() {
 	printf "%s-%s" "$_arch" "$_os"
 }
 
+_get_lix_release_url() {
+	if [ -z "${INPUT_LIX_VERSION:-}" ]; then
+		echo "No lix_version set, using installer default" >&2
+	elif [[ "${INPUT_LIX_VERSION}" =~ .*://.* ]]; then
+		echo "lix_version looks like a URL, using as is (url='$INPUT_LIX_VERSION')" >&2
+		printf '%s' "${INPUT_LIX_VERSION}"
+	elif [[ "${INPUT_LIX_VERSION}" =~ ^[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+$ ]]; then
+		url=https://releases.lix.systems/lix/lix-${INPUT_LIX_VERSION}/lix-${INPUT_LIX_VERSION}-$(_get_system).tar.xz
+		echo "lix_version looks like a semver version, using $url" >&2
+		printf '%s' "$url"
+	else
+		_gha_err "Invalid Lix version (${INPUT_LIX_VERSION})" "Expected lix_version to be a URL or semver version, got: '${INPUT_LIX_VERSION}'"
+		_exit_failure
+	fi
+
+}
+
+_release_url=$(_get_lix_release_url)
+
 printf '»» lix-gha/do-the-lix-thing\n'
 _get_system
 printf '\n'
 _environment_details
 printf '\n'
+
+printf 'NIX_INSTALLER_NIX_PACKAGE_URL=%s\n' "$_release_url"
+if [[ -n "$_release_url" ]]; then
+	export NIX_INSTALLER_NIX_PACKAGE_URL="$_release_url"
+fi
 
 trap _handle_exit EXIT
 

@@ -11,6 +11,12 @@ inputs:
     description: |
       Additional configuration text to append to nix.conf. See https://docs.lix.systems/manual/lix/2.90/command-ref/conf-file.html
       for a description of the config file format.
+  lix_version:
+    description: |
+      The exact lix version to use (e.g. 2.93.2) or a URL to the Lix release (e.g.
+      https://releases.lix.systems/lix/lix-2.92.0/lix-2.92.0-x86_64-linux.tar.xz).
+
+      You should almost always use a version instead of the full URL.
 runs:
   using: "composite"
   steps:
@@ -26,3 +32,4 @@ runs:
         INPUT_GITHUB_ACCESS_TOKEN: "${{inputs.github_access_token}}"
         GITHUB_TOKEN: "${{github.token}}"
         INPUT_EXTRA_CONFIG: "${{inputs.extra_nix_config}}"
+        INPUT_LIX_VERSION: "${{inputs.lix_version}}"
