@@ -41,6 +41,35 @@ jobs:
           set -eux -o pipefail
           nix --extra-experimental-features nix-command config show
           )
+      - name: Checking kvm is setup
+        shell: bash
+        run: |
+          (
+            set -eu -o pipefail
+            if test -e /dev/kvm; then
+              echo "/dev/kvm is present."
+              if test -e /dev/kvm; then
+                echo "/dev/kvm is accessible."
+                if (set -x; nix --extra-experimental-features nix-command config show | grep '^system-features =.*kvm'); then
+                  echo "kvm is setup as a system feature."
+                else
+                  echo "kvm has not been setup as a system feature!"
+                  echo "Aborting..."
+                  exit 1
+                fi
+              else
+                echo "/dev/kvm is not accessible!"
+                echo "Aborting..."
+                exit 1
+              fi
+            else
+              echo "No /dev/kvm... this is possibly fine."
+              (
+                set -x
+                uname -a
+              )
+            fi
+          )
       - name: Doing some Nix stuff
         shell: bash
         run: |
