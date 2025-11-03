@@ -34,6 +34,13 @@ jobs:
           env | grep -i nix
           cat /etc/nix/nix.conf
           )
+      - name: nix config show
+        shell: bash
+        run: |
+          (
+          set -eux -o pipefail
+          nix --extra-experimental-features nix-command config show
+          )
       - name: Doing some Nix stuff
         shell: bash
         run: |
