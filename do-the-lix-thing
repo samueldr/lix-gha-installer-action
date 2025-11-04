@@ -122,6 +122,15 @@ printf '\n'
 
 trap _handle_exit EXIT
 
+if test -e /dev/kvm; then
+	echo "Setting-up /dev/kvm..."
+	if (set -x; sudo chmod a+rw /dev/kvm); then
+		echo "... Done!"
+	else
+		echo "... Couldn't be done?"
+	fi
+fi
+
 # Start tracing commands
 # Doing it in a subshell means _handle_exit will not trace.
 (
