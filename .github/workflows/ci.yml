@@ -11,14 +11,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
+        os: # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#standard-github-hosted-runners-for-public-repositories
+          # Linux systems
           - ubuntu-22.04
           - ubuntu-24.04
           - ubuntu-22.04-arm
           - ubuntu-24.04-arm
-          - macos-13 # Last x86_64
+          # macOS systems
           - macos-14 # aarch64
           - macos-15 # aarch64
+          - macos-26 # aarch64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
