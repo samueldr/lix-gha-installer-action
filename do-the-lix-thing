@@ -73,6 +73,10 @@ _command_exists() {
 	type -P "$1" > /dev/null
 }
 
+_indent() {
+	sed -e 's/^/    /'
+}
+
 _environment_details() {
 	printf "Environment details:\n"
 	printf "  - Date:     %s\n" "$(date)"
@@ -179,9 +183,16 @@ set +u
 
 set -u
 
-# Then do some additional checks
-printf '\n  builtins.nixVersion: ';
-(set -x; nix-instantiate --eval --json --strict --expr "(builtins.nixVersion)")
-printf '\n'
+# See if nix thinks the install is good...
+printf '\n  nix doctor:\n'
+(set -x; nix doctor) 2>&1 | _indent
 
+# Then do some additional checks
+printf '\n  builtins.nixVersion:\n';
+(set -x; nix-instantiate --eval --json --strict --expr "(builtins.nixVersion)") 2>&1 | _indent
+
+printf '\n  Lix version information:\n'
+(set -x; nix-instantiate --version) 2>&1 | _indent
+
+printf '\n'
 rm -v "$TRACE_LOG" "$ERR_LOG" || true
