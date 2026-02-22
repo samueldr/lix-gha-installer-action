@@ -153,8 +153,12 @@ fi
 (
 	< /etc/nix/nix.conf sed -e 's/nixpkgs=flake:nixpkgs/nixpkgs=channel:nixos-unstable/'
 	if [ -z "${INPUT_GITHUB_ACCESS_TOKEN:-}" ]; then
-		echo "Configuring default github access token" >&2
-		printf "extra-access-tokens = github.com=%s\n" "${GITHUB_TOKEN}"
+		if [ "$GITHUB_SERVER_URL" == "https://github.com" ]; then
+			echo "Configuring default github access token" >&2
+			printf "extra-access-tokens = github.com=%s\n" "${GITHUB_TOKEN}"
+		else
+			echo "Continuing without a github access token" >&2
+		fi
 	else
 		echo "Configuring custom github access token" >&2
 		printf "extra-access-tokens = github.com=%s\n" "${INPUT_GITHUB_ACCESS_TOKEN}"
