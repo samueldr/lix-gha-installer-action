@@ -80,3 +80,89 @@ jobs:
           nix --extra-experimental-features nix-command config show | grep lix-gha-installer-extra-config-works
           echo "pp RUBY_DESCRIPTION" | nix-shell -p ruby --run ruby
           )
+  do-it-with-url:
+    name: Testing the action works when lix_version is a URL
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        version: # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
+          - "2.93.3"
+          - "2.92.3"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          extra_nix_config: |
+            extra-access-tokens = example.com=lix-gha-installer-extra-config-works
+          lix_version: "https://releases.lix.systems/lix/lix-${{ matrix.version }}/lix-${{ matrix.version }}-x86_64-linux.tar.xz"
+      - name: Printing some useful info
+        shell: bash
+        run: |
+          (
+          set -eux -o pipefail
+          env | grep -i nix
+          cat /etc/nix/nix.conf
+          )
+      - name: Doing some Nix stuff
+        shell: bash
+        run: |
+          (
+          set -eux -o pipefail
+          nix --extra-experimental-features nix-command config show | grep lix-gha-installer-extra-config-works
+          echo "pp RUBY_DESCRIPTION" | nix-shell -p ruby --run ruby
+          )
+      - name: Checking the version is correct
+        shell: bash
+        env:
+          LIX_VERSION: ${{ matrix.version }}
+        run: |
+          (
+          set -eux -o pipefail
+          nix --version | grep "^nix (Lix, like Nix) $LIX_VERSION\$"
+          )
+  do-it-with-style:
+    name: Testing the action works for Lix ${{ matrix.version }} on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - macos-15 # aarch64
+        version:
+          - "2.93.3"
+          - "2.92.3"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          extra_nix_config: |
+            extra-access-tokens = example.com=lix-gha-installer-extra-config-works
+          lix_version: ${{ matrix.version }}
+      - name: Printing some useful info
+        shell: bash
+        run: |
+          (
+          set -eux -o pipefail
+          env | grep -i nix
+          cat /etc/nix/nix.conf
+          )
+      - name: Doing some Nix stuff
+        shell: bash
+        run: |
+          (
+          set -eux -o pipefail
+          nix --extra-experimental-features nix-command config show | grep lix-gha-installer-extra-config-works
+          echo "pp RUBY_DESCRIPTION" | nix-shell -p ruby --run ruby
+          )
+      - name: Checking the version is correct
+        shell: bash
+        env:
+          LIX_VERSION: ${{ matrix.version }}
+        run: |
+          (
+          set -eux -o pipefail
+          nix --version | grep "^nix (Lix, like Nix) $LIX_VERSION\$"
+          )
