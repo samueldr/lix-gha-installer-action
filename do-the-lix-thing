@@ -39,6 +39,13 @@ _gha_err() {
 	printf '\nError:\n%s\n%s\n' "$title" "$*"
 }
 
+_gha_warn() {
+	local title
+	title=$1; shift
+	printf '\n::warning title="%s"::%s\n' "$title" "${*//$'\n'/%0A}"
+	printf '\nWarning:\n%s\n%s\n' "$title" "$*"
+}
+
 _handle_exit() {
 	local status=$?
 	if (( status )); then
@@ -118,6 +125,23 @@ _get_system() {
 	printf "%s-%s" "$_arch" "$_os"
 }
 
+_check-nix-build() {
+	if nix config show | grep 'sandbox-path.*/bin/sh' &> /dev/null; then
+		(set -x; nix-build --no-out-link --expr '
+		  derivation {
+		    name = "lix-test";
+		    system = builtins.currentSystem;
+		    builder = "/bin/sh";
+		    args = [
+		      "-c"
+		      "printf \"%s\" ${toString builtins.currentTime} > $out"
+		    ];
+		  }') 2>&1 | _indent
+	else
+		_gha_warn "Skipping \`nix-build\` check" "This configuration may be lacking an impure /bin/sh. The \`nix-build\` check requires this."
+	fi
+}
+
 printf '»» lix-gha/do-the-lix-thing\n'
 _get_system
 printf '\n'
@@ -190,6 +214,14 @@ set -u
 # See if nix thinks the install is good...
 printf '\n  nix doctor:\n'
 (set -x; nix doctor) 2>&1 | _indent
+
+# Preform a basic build to ensure further functionality of the daemon
+# Regression test for https://github.com/samueldr/lix-gha-installer-action/issues/17
+printf '\n  nix build:\n'
+if ! _check-nix-build 2>&1 | _indent; then
+	_gha_err "Failed to run \`nix-build\`" "This may be an issue with the Nix daemon, and installation should not proceed"
+	exit 2
+fi
 
 # Then do some additional checks
 printf '\n  builtins.nixVersion:\n';
