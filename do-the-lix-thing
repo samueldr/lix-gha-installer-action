@@ -167,11 +167,8 @@ set -x
 _installer_bin="$INSTALLER_DOWNLOAD_DIR/lix-installer"
 _etag="$INSTALLER_DOWNLOAD_DIR/etag"
 mkdir -p "$(dirname "$_installer_bin")"
-if ! [ -f "$_etag" ] || ! curl --head -sSf -L --etag-compare "$_etag" "https://install.lix.systems/lix/lix-installer-$(_get_system)"
-then
-	curl -o "$_installer_bin" -sSf -L --etag-save "$_etag" "https://install.lix.systems/lix/lix-installer-$(_get_system)"
-	chmod +x "$_installer_bin"
-fi
+curl --output "$_installer_bin" --silent --show-error --fail --location --etag-compare "$_etag" --etag-save "$_etag" "https://install.lix.systems/lix/lix-installer-$(_get_system)"
+chmod +x "$_installer_bin"
 "$_installer_bin" install --no-confirm
 
 (
